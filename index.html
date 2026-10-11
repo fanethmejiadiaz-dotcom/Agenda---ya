@@ -1,9 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<title>Agenda Ya</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Ya - Barbería</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background:#0f0f0f;color:#fff;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);padding:25px 20px;text-align:center;border-bottom:3px solid #f5b400}
+.header h1{font-size:28px;color:#f5b400}
+.header p{color:#aaa;margin-top:5px;font-size:14px}
+.container{max-width:900px;margin:20px auto;padding:0 15px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.container{grid-template-columns:1fr}}
+.card{background:#1e1e1e;border-radius:16px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid #2a2a2a}
+.card h2{color:#f5b400;font-size:18px;margin-bottom:15px}
+.calendario{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.dia-nombre{color:#777;font-size:12px;padding:5px}
+.dia{padding:10px 5px;border-radius:10px;cursor:pointer;background:#2a2a2a;font-size:14px}
+.dia.seleccionado{background:#f5b400;color:#000;font-weight:700}
+.dia.hoy{border:1px solid #f5b400}
+.dia.vacio{background:transparent;cursor:default}
+.horas{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:300px;overflow-y:auto}
+.hora{padding:12px;background:#2a2a2a;border-radius:10px;text-align:center;cursor:pointer}
+.hora.seleccionada{background:#f5b400;color:#000;font-weight:700}
+.servicios{display:flex;flex-direction:column;gap:10px}
+.servicio{padding:14px;background:#2a2a2a;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;border:2px solid transparent}
+.servicio.seleccionado{border-color:#f5b400;background:#2f2a1a}
+.servicio span:last-child{color:#f5b400;font-weight:700}
+input{width:100%;padding:14px;background:#2a2a2a;border:1px solid #333;border-radius:12px;color:#fff;margin-bottom:12px}
+.btn{width:100%;padding:16px;background:#f5b400;color:#000;border:none;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}
+.resumen{background:#1a1a1a;border-radius:12px;padding:15px;margin-top:15px;border-left:4px solid #f5b400}
+.resumen p{font-size:14px;margin:5px 0;color:#ccc}
+.mes-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.mes-nav button{background:#2a2a2a;border:none;color:#f5b400;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:18px}
+</style>
 </head>
 <body>
-<h1>Agenda Ya - Agendamiento de Barberías</h1>
+<div class="header">
+<h1>💈 AGENDA YA</h1>
+<p>Reserva tu corte en segundos - Barranquilla</p>
+</div>
+<div class="container">
+<div class="card">
+<h2>📅 Elige el día</h2>
+<div class="mes-nav">
+<button onclick="cambiarMes(-1)">‹</button>
+<span id="mesAnio" style="font-weight:700"></span>
+<button onclick="cambiarMes(1)">›</button>
+</div>
+<div class="calendario" id="calendario"></div>
+</div>
+<div class="card">
+<h2>⏰ Hora disponible</h2>
+<div class="horas" id="horas"></div>
+</div>
+<div class="card">
+<h2>✂️ Servicio</h2>
+<div class="servicios">
+<div class="servicio" onclick="selectServicio(this,'Corte Clásico',18000)"><span>💈 Corte Clásico</span><span>$18.000</span></div>
+<div class="servicio" onclick="selectServicio(this,'Corte + Barba',28000)"><span>✨ Corte + Barba</span><span>$28.000</span></div>
+<div class="servicio" onclick="selectServicio(this,'Corte + Cejas',22000)"><span>🔥 Corte + Cejas</span><span>$22.000</span></div>
+<div class="servicio" onclick="selectServicio(this,'Afeitado Premium',25000)"><span>👑 Afeitado Premium</span><span>$25.000</span></div>
+</div>
+<div class="resumen">
+<p><strong>Resumen:</strong></p>
+<p>📅 Fecha: <span id="rFecha">-</span></p>
+<p>⏰ Hora: <span id="rHora">-</span></p>
+<p>✂️ Servicio: <span id="rServicio">-</span></p>
+</div>
+</div>
+<div class="card">
+<h2>👤 Tus datos</h2>
+<input id="nombre" placeholder="Tu nombre completo">
+<input id="whatsapp" placeholder="Tu WhatsApp (ej: 3001234567)">
+<input id="nota" placeholder="Nota opcional">
+<button class="btn" onclick="agendar()">📲 AGENDAR POR WHATSAPP</button>
+</div>
+</div>
+<script>
+let fechaSeleccionada=null, horaSeleccionada=null, servicioSeleccionado=null, precioSeleccionado=0;
+let mesActual=new Date().getMonth(), anioActual=new Date().getFullYear();
+const meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const diasSem=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+function generarCalendario(){
+ const calendario=document.getElementById('calendario');
+ const mesAnio=document.getElementById('mesAnio');
+ mesAnio.textContent=`${meses[mesActual]} ${anioActual}`;
+ calendario.innerHTML='';
+ diasSem.forEach(d=>{const e=document.createElement('div');e.className='dia-nombre';e.textContent=d;calendario.appendChild(e)});
+ const primerDia=new Date(anioActual,mesActual,1).getDay();
+ const diasMes=new Date(anioActual,mesActual+1,0).getDate();
+ for(let i=0;i<primerDia;i++){const v=document.createElement('div');v.className='dia vacio';calendario.appendChild(v)}
+ for(let d=1;d<=diasMes;d++){
+  const diaEl=document.createElement('div');diaEl.className='dia';diaEl.textContent=d;
+  const fecha=new Date(anioActual,mesActual,d);
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  if(fecha<hoy){diaEl.style.opacity='0.3'}
+  else{
+   if(fecha.toDateString()===new Date().toDateString()) diaEl.classList.add('hoy');
+   diaEl.onclick=()=>seleccionarDia(d,fecha,diaEl);
+  }
+  calendario.appendChild(diaEl);
+ }
+}
+function seleccionarDia(d,fecha,el){
+ document.querySelectorAll('.dia').forEach(x=>x.classList.remove('seleccionado'));
+ el.classList.add('seleccionado');
+ fechaSeleccionada=fecha;
+ document.getElementById('rFecha').textContent=fecha.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+ generarHoras();
+}
+function generarHoras(){
+ const cont=document.getElementById('horas');cont.innerHTML='';
+ const horas=["8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM","6:30 PM","7:00 PM"];
+ horas.forEach(h=>{const div=document.createElement('div');div.className='hora';div.textContent=h;div.onclick=()=>{document.querySelectorAll('.hora').forEach(x=>x.classList.remove('seleccionada'));div.classList.add('seleccionada');horaSeleccionada=h;document.getElementById('rHora').textContent=h};cont.appendChild(div)});
+}
+function cambiarMes(dir){mesActual+=dir;if(mesActual<0){mesActual=11;anioActual--}if(mesActual>11){mesActual=0;anioActual++}generarCalendario()}
+function selectServicio(el,nombre,precio){
+ document.querySelectorAll('.servicio').forEach(s=>s.classList.remove('seleccionado'));
+ el.classList.add('seleccionado');
+ servicioSeleccionado=nombre;precioSeleccionado=precio;
+ document.getElementById('rServicio').textContent=`${nombre} - $${precio.toLocaleString()}`;
+}
+function agendar(){
+ const nombre=document.getElementById('nombre').value.trim();
+ const wp=document.getElementById('whatsapp').value.trim();
+ if(!fechaSeleccionada){alert('Elige una fecha 📅');return}
+ if(!horaSeleccionada){alert('Elige una hora ⏰');return}
+ if(!servicioSeleccionado){alert('Elige un servicio ✂️');return}
+ if(!nombre){alert('Escribe tu nombre 👤');return}
+ const fechaTxt=fechaSeleccionada.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ const mensaje=`Hola! 💈 Quiero agendar en *AGENDA YA*%0A%0A👤 Nombre: ${nombre}%0A📅 Fecha: ${fechaTxt}%0A⏰ Hora: ${horaSeleccionada}%0A✂️ Servicio: ${servicioSeleccionado} - $${precioSeleccionado.toLocaleString()}%0A📱 WhatsApp: ${wp}%0A%0A${document.getElementById('nota').value?`📝 Nota: ${document.getElementById('nota').value}%0A%0A`:''}¡Confirmame por favor! 🙏`;
+ const numeroBarberia="573001234567";
+ window.open(`https://wa.me/${numeroBarberia}?text=${mensaje}`,'_blank');
+}
+generarCalendario();
+</script>
 </body>
 </html>
