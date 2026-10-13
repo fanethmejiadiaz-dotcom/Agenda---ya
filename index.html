@@ -26,9 +26,9 @@ const contHoras=document.getElementById('contenedor-horas');
 const hoy=new Date().toISOString().split('T')[0]; fechaInput.min=hoy;
 function generarHoras(){
   contHoras.innerHTML='';
-  const horas=["08:00","09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
-  horas.forEach(h=>{
-    const b=document.createElement('button'); b.textContent=h; b.className='hora-btn';
+  ["08:00","09:00","10:00","11:00","14:00","15:00","16:00","17:00"].forEach(h=>{
+    const b=document.createElement('button');
+    b.textContent=h; b.type='button'; b.className='hora-btn';
     b.onclick=()=>{document.querySelectorAll('.hora-btn').forEach(x=>x.classList.remove('activa')); b.classList.add('activa')};
     contHoras.appendChild(b);
   });
@@ -37,7 +37,7 @@ fechaInput.addEventListener('change',generarHoras); generarHoras();
 function validarWPP(){
   const wpp=document.getElementById('whatsapp').value.trim();
   const err=document.getElementById('error-wpp');
-  const ok=/^3\d{9}$/.test(wpp);
+ const ok=/^3\d{9}$/.test(wpp);
   err.style.display=ok?'none':'block';
   return ok;
 }
