@@ -3,139 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agenda Ya - Barbería</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<title>AgendaYa - Cartagena | Tu tiempo, en buenas manos</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
-body{background:#0f0f0f;color:#fff;min-height:100vh}
-.header{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);padding:25px 20px;text-align:center;border-bottom:3px solid #f5b400}
-.header h1{font-size:28px;color:#f5b400}
-.header p{color:#aaa;margin-top:5px;font-size:14px}
-.container{max-width:900px;margin:20px auto;padding:0 15px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:768px){.container{grid-template-columns:1fr}}
-.card{background:#1e1e1e;border-radius:16px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid #2a2a2a}
-.card h2{color:#f5b400;font-size:18px;margin-bottom:15px}
-.calendario{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
-.dia-nombre{color:#777;font-size:12px;padding:5px}
-.dia{padding:10px 5px;border-radius:10px;cursor:pointer;background:#2a2a2a;font-size:14px}
-.dia.seleccionado{background:#f5b400;color:#000;font-weight:700}
-.dia.hoy{border:1px solid #f5b400}
-.dia.vacio{background:transparent;cursor:default}
-.horas{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:300px;overflow-y:auto}
-.hora{padding:12px;background:#2a2a2a;border-radius:10px;text-align:center;cursor:pointer}
-.hora.seleccionada{background:#f5b400;color:#000;font-weight:700}
-.servicios{display:flex;flex-direction:column;gap:10px}
-.servicio{padding:14px;background:#2a2a2a;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;border:2px solid transparent}
-.servicio.seleccionado{border-color:#f5b400;background:#2f2a1a}
-.servicio span:last-child{color:#f5b400;font-weight:700}
-input{width:100%;padding:14px;background:#2a2a2a;border:1px solid #333;border-radius:12px;color:#fff;margin-bottom:12px}
-.btn{width:100%;padding:16px;background:#f5b400;color:#000;border:none;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}
-.resumen{background:#1a1a1a;border-radius:12px;padding:15px;margin-top:15px;border-left:4px solid #f5b400}
-.resumen p{font-size:14px;margin:5px 0;color:#ccc}
-.mes-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
-.mes-nav button{background:#2a2a2a;border:none;color:#f5b400;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:18px}
+:root{--indigo:#4F46E5;--indigo-dark:#4338CA;--bg:#F8F7FF}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,sans-serif}
+body{background:var(--bg);color:#1f2937}
+header{background:var(--indigo);color:white;padding:22px 20px;text-align:center}
+header h1{font-size:26px;letter-spacing:.5px}
+header p.lema{opacity:.9;margin-top:4px;font-size:14px}
+header p.ciudad{margin-top:8px;background:rgba(255,255,255,.2);display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px}
+.container{max-width:480px;margin:24px auto;background:white;border-radius:16px;box-shadow:0 8px 24px rgba(79,70,229,.15);padding:22px}
+label{font-weight:600;font-size:14px;margin:14px 0 6px;display:block}
+input,select{width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--indigo)}
+.horas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.hora-btn{padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;background:white;cursor:pointer;font-size:14px}
+.hora-btn.activa{background:var(--indigo);color:white;border-color:var(--indigo)}
+.hora-btn:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed;text-decoration:line-through}
+.error{color:#dc2626;font-size:12px;margin-top:5px;display:none}
+.btn-primary{width:100%;background:var(--indigo);color:white;border:none;padding:14px;border-radius:12px;font-weight:700;margin-top:20px;cursor:pointer;font-size:16px}
+.btn-primary:hover{background:var(--indigo-dark)}
+.confirmacion{display:none;text-align:center;padding:30px 20px}
+.confirmacion h2{color:var(--indigo)}
+.resumen{background:#f5f3ff;border-radius:12px;padding:14px;margin:16px 0;text-align:left;font-size:14px;line-height:1.6}
+footer{text-align:center;padding:22px;font-size:12px;color:#6b7280}
+footer b{color:var(--indigo)}
 </style>
 </head>
 <body>
-<div class="header">
-<h1>💈 AGENDA YA</h1>
-<p>Reserva tu corte en segundos - Cartagena</p>
-</div>
-<div class="container">
-<div class="card">
-<h2>📅 Elige el día</h2>
-<div class="mes-nav">
-<button onclick="cambiarMes(-1)">‹</button>
-<span id="mesAnio" style="font-weight:700"></span>
-<button onclick="cambiarMes(1)">›</button>
-</div>
-<div class="calendario" id="calendario"></div>
-</div>
-<div class="card">
-<h2>⏰ Hora disponible</h2>
+<header>
+<h1>AgendaYa</h1>
+<p class="lema">Tu tiempo, en buenas manos</p>
+<p class="ciudad">📍 Reserva tu corte en segundos - Cartagena</p>
+</header>
+
+<div class="container" id="formulario">
+<label>Servicio</label>
+<select id="servicio">
+<option value="">Selecciona un servicio</option>
+<option>Corte Clásico - $15.000</option>
+<option>Corte + Barba - $25.000</option>
+<option>Degradado - $20.000</option>
+<option>Afeitado - $12.000</option>
+</select>
+
+<label>Fecha</label>
+<input type="date" id="fecha">
+<div class="error" id="error-fecha"></div>
+
+<label>Hora disponible</label>
 <div class="horas" id="horas"></div>
+
+<label>Tu nombre</label>
+<input type="text" id="nombre" placeholder="Ej: Faneth Mejia">
+
+<label>WhatsApp</label>
+<input type="tel" id="whatsapp" placeholder="Ej: 3001234567" maxlength="10">
+<div class="error" id="error-wpp">Debe tener 10 dígitos y empezar por 3</div>
+
+<button class="btn-primary" onclick="agendar()">Agendar por WhatsApp</button>
 </div>
-<div class="card">
-<h2>✂️ Servicio</h2>
-<div class="servicios">
-<div class="servicio" onclick="selectServicio(this,'Corte Clásico',18000)"><span>💈 Corte Clásico</span><span>$18.000</span></div>
-<div class="servicio" onclick="selectServicio(this,'Corte + Barba',28000)"><span>✨ Corte + Barba</span><span>$28.000</span></div>
-<div class="servicio" onclick="selectServicio(this,'Corte + Cejas',22000)"><span>🔥 Corte + Cejas</span><span>$22.000</span></div>
-<div class="servicio" onclick="selectServicio(this,'Afeitado Premium',25000)"><span>👑 Afeitado Premium</span><span>$25.000</span></div>
+
+<div class="container confirmacion" id="confirmacion">
+<h2>¡Listo! ✅</h2>
+<p style="margin-top:8px">Tu solicitud se envió por WhatsApp</p>
+<div class="resumen" id="resumen"></div>
+<button class="btn-primary" onclick="location.reload()">Hacer otra reserva</button>
 </div>
-<div class="resumen">
-<p><strong>Resumen:</strong></p>
-<p>📅 Fecha: <span id="rFecha">-</span></p>
-<p>⏰ Hora: <span id="rHora">-</span></p>
-<p>✂️ Servicio: <span id="rServicio">-</span></p>
-</div>
-</div>
-<div class="card">
-<h2>👤 Tus datos</h2>
-<input id="nombre" placeholder="Tu nombre completo">
-<input id="whatsapp" placeholder="Tu WhatsApp (ej: 3001234567)">
-<input id="nota" placeholder="Nota opcional">
-<button class="btn" onclick="agendar()">📲 AGENDAR POR WHATSAPP</button>
-</div>
-</div>
+
+<footer>
+<b>Faneth Mejia Diaz</b><br>
+Proyecto productivo SENA – ADSO<br>
+Cartagena – 2026<br>
+AgendaYa - Tu tiempo, en buenas manos
+</footer>
+
 <script>
-let fechaSeleccionada=null, horaSeleccionada=null, servicioSeleccionado=null, precioSeleccionado=0;
-let mesActual=new Date().getMonth(), anioActual=new Date().getFullYear();
-const meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const diasSem=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-function generarCalendario(){
- const calendario=document.getElementById('calendario');
- const mesAnio=document.getElementById('mesAnio');
- mesAnio.textContent=`${meses[mesActual]} ${anioActual}`;
- calendario.innerHTML='';
- diasSem.forEach(d=>{const e=document.createElement('div');e.className='dia-nombre';e.textContent=d;calendario.appendChild(e)});
- const primerDia=new Date(anioActual,mesActual,1).getDay();
- const diasMes=new Date(anioActual,mesActual+1,0).getDate();
- for(let i=0;i<primerDia;i++){const v=document.createElement('div');v.className='dia vacio';calendario.appendChild(v)}
- for(let d=1;d<=diasMes;d++){
-  const diaEl=document.createElement('div');diaEl.className='dia';diaEl.textContent=d;
-  const fecha=new Date(anioActual,mesActual,d);
-  const hoy=new Date(); hoy.setHours(0,0,0,0);
-  if(fecha<hoy){diaEl.style.opacity='0.3'}
-  else{
-   if(fecha.toDateString()===new Date().toDateString()) diaEl.classList.add('hoy');
-   diaEl.onclick=()=>seleccionarDia(d,fecha,diaEl);
-  }
-  calendario.appendChild(diaEl);
- }
+const horasLista = ["08:00","09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"];
+const fechaInput = document.getElementById('fecha');
+const horasDiv = document.getElementById('horas');
+
+// Fecha mínima = hoy
+const hoy = new Date().toISOString().split('T')[0];
+fechaInput.min = hoy;
+
+fechaInput.addEventListener('change', renderHoras);
+
+function renderHoras(){
+const errorFecha = document.getElementById('error-fecha');
+errorFecha.style.display='none';
+horasDiv.innerHTML='';
+
+const fechaSel = new Date(fechaInput.value + 'T00:00:00');
+if(isNaN(fechaSel)) return;
+
+// 4. Bloquea domingos (0=domingo)
+if(fechaSel.getDay()===0){
+errorFecha.textContent='Los domingos no hay servicio. Elige otro día.';
+errorFecha.style.display='block';
+return;
 }
-function seleccionarDia(d,fecha,el){
- document.querySelectorAll('.dia').forEach(x=>x.classList.remove('seleccionado'));
- el.classList.add('seleccionado');
- fechaSeleccionada=fecha;
- document.getElementById('rFecha').textContent=fecha.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
- generarHoras();
+
+const ahora = new Date();
+const esHoy = fechaInput.value === hoy;
+
+horasLista.forEach(h=>{
+const btn = document.createElement('button');
+btn.className='hora-btn';
+btn.textContent=h;
+btn.type='button';
+
+// 3. Bloquea horas pasadas si es hoy
+if(esHoy){
+const [hh,mm] = h.split(':').map(Number);
+const horaDate = new Date();
+horaDate.setHours(hh,mm,0,0);
+if(horaDate < ahora){
+btn.disabled = true;
 }
-function generarHoras(){
- const cont=document.getElementById('horas');cont.innerHTML='';
- const horas=["8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM","5:30 PM","6:00 PM","6:30 PM","7:00 PM"];
- horas.forEach(h=>{const div=document.createElement('div');div.className='hora';div.textContent=h;div.onclick=()=>{document.querySelectorAll('.hora').forEach(x=>x.classList.remove('seleccionada'));div.classList.add('seleccionada');horaSeleccionada=h;document.getElementById('rHora').textContent=h};cont.appendChild(div)});
 }
-function cambiarMes(dir){mesActual+=dir;if(mesActual<0){mesActual=11;anioActual--}if(mesActual>11){mesActual=0;anioActual++}generarCalendario()}
-function selectServicio(el,nombre,precio){
- document.querySelectorAll('.servicio').forEach(s=>s.classList.remove('seleccionado'));
- el.classList.add('seleccionado');
- servicioSeleccionado=nombre;precioSeleccionado=precio;
- document.getElementById('rServicio').textContent=`${nombre} - $${precio.toLocaleString()}`;
+
+btn.onclick=()=>{
+document.querySelectorAll('.hora-btn').forEach(b=>b.classList.remove('activa'));
+btn.classList.add('activa');
+};
+horasDiv.appendChild(btn);
+});
 }
+
+// 5. Valida WhatsApp sin alert
+function validarWPP(){
+const wpp = document.getElementById('whatsapp').value.trim();
+const error = document.getElementById('error-wpp');
+const regex = /^3\d{9}$/; // empieza por 3 y 10 dígitos
+if(!regex.test(wpp)){
+error.style.display='block';
+return false;
+}
+error.style.display='none';
+return true;
+}
+document.getElementById('whatsapp').addEventListener('input', validarWPP);
+
 function agendar(){
- const nombre=document.getElementById('nombre').value.trim();
- const wp=document.getElementById('whatsapp').value.trim();
- if(!fechaSeleccionada){alert('Elige una fecha 📅');return}
- if(!horaSeleccionada){alert('Elige una hora ⏰');return}
- if(!servicioSeleccionado){alert('Elige un servicio ✂️');return}
- if(!nombre){alert('Escribe tu nombre 👤');return}
- const fechaTxt=fechaSeleccionada.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
- const mensaje=`Hola! 💈 Quiero agendar en *AGENDA YA*%0A%0A👤 Nombre: ${nombre}%0A📅 Fecha: ${fechaTxt}%0A⏰ Hora: ${horaSeleccionada}%0A✂️ Servicio: ${servicioSeleccionado} - $${precioSeleccionado.toLocaleString()}%0A📱 WhatsApp: ${wp}%0A%0A${document.getElementById('nota').value?`📝 Nota: ${document.getElementById('nota').value}%0A%0A`:''}¡Confirmame por favor! 🙏`;
- const numeroBarberia="573001234567";
- window.open(`https://wa.me/${numeroBarberia}?text=${mensaje}`,'_blank');
+const servicio = document.getElementById('servicio').value;
+const fecha = fechaInput.value;
+const horaActiva = document.querySelector('.hora-btn.activa');
+const nombre = document.getElementById('nombre').value.trim();
+const wpp = document.getElementById('whatsapp').value.trim();
+
+if(!servicio ||!fecha ||!horaActiva ||!nombre){
+alert('Por favor completa todos los campos'); // solo para campos vacíos, el de wpp es inline
+return;
 }
-generarCalendario();
+if(!validarWPP()) return;
+
+const hora = horaActiva.textContent;
+
+// 6. Pantalla de confirmación
+document.getElementById('formulario').style.display='none';
+document.getElementById('confirmacion').style.display='block';
+document.getElementById('resumen').innerHTML=`
+<b>Servicio:</b> ${servicio}<br>
+<b>Fecha:</b> ${fecha}<br>
+<b>Hora:</b> ${hora}<br>
+<b>Cliente:</b> ${nombre}<br>
+<b>WhatsApp:</b> ${wpp}<br>
+<b>Ciudad:</b> Cartagena
+`;
+
+// Abre WhatsApp real del negocio
+const mensaje = `Hola AgendaYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}.`;
+const url = `https://wa.me/57${wpp}?text=${encodeURIComponent(mensaje)}`;
+// window.open(url,'_blank'); // descomenta si quieres que se abra automáticamente
+}
+renderHoras();
 </script>
 </body>
 </html>
