@@ -98,12 +98,12 @@ function renderHoras(){
     btn.onclick=()=>{ document.querySelectorAll('.hora-btn').forEach(b=>b.classList.remove('activa')); btn.classList.add('activa'); };
     horasDiv.appendChild(btn);
   });
-}
 function validarWPP(){
   const wpp=document.getElementById('whatsapp').value.trim();
   const err=document.getElementById('error-wpp');
   const ok=/^3\d{9}$/.test(wpp);
-  err.style.display=ok?'none':'block'; return ok;
+  err.style.display=ok?'none':'block';
+  return ok;
 }
 document.getElementById('whatsapp').addEventListener('input',validarWPP);
 
@@ -112,16 +112,15 @@ function agendar(){
   const fecha=fechaInput.value;
   const horaBtn=document.querySelector('.hora-btn.activa');
   const nombre=document.getElementById('nombre').value.trim();
-  if(!servicio||!fecha||!horaBtn||!nombre){ alert('Completa todos los campos'); return; }
+  if(!servicio||!fecha||!horaBtn||!nombre){ return; }
   if(!validarWPP()) return;
   const hora=horaBtn.textContent;
-  // PUNTO 6: pantalla confirmación
   document.getElementById('formulario').style.display='none';
   document.getElementById('confirmacion').style.display='block';
-  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>Cliente:</b> ${nombre}<br><b>WhatsApp:</b> ${document.getElementById('whatsapp').value}<br><b>Ciudad:</b> Cartagena`;
+  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>Cliente:</b> ${nombre}`;
   const msg=`Hola AgendaYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}. - Cartagena`;
-  const url=`https://wa.me/57${document.getElementById('whatsapp').value}?text=${encodeURIComponent(msg)}`;
-  setTimeout(()=>window.open(url,'_blank'),800);
+  const url=`https://wa.me/573001234567?text=${encodeURIComponent(msg)}`;
+  setTimeout(()=>window.open(url,'_blank'),3500);
 }
 renderHoras();
 </script>
