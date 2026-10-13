@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel AgendaYa</title>
+<style>
+body{font-family:sans-serif;background:#F0F0FF;padding:15px}
+.card{background:white;padding:20px;border-radius:12px;max-width:500px;margin:auto}
+input,button{width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1.5px solid #ccc}
+button{background:#4F46E5;color:white;font-weight:bold;border:none}
+.cita{border:1px solid #eee;padding:10px;border-radius:8px;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+<div class="card">
+<h3>Panel AgendaYa - Cartagena</h3>
+<p>Clave: 1234</p>
+<input id="pass" type="password" placeholder="Clave del negocio">
+<input id="fecha" type="date">
+<button onclick="verCitas()">Ver citas del día</button>
+<div id="lista"></div>
+</div>
+<script>
+async function verCitas(){
+ const pass=document.getElementById('pass').value;
+ const fecha=document.getElementById('fecha').value;
+ const res=await fetch(`/api/citas?pass=${pass}&fecha=${fecha}`);
+ const data=await res.json();
+ if(!res.ok){alert(data.error);return}
+ const lista=document.getElementById('lista');
+ lista.innerHTML=data.length?'':'No hay citas';
+ data.forEach(c=>{
+  const div=document.createElement('div');div.className='cita';
+  div.innerHTML=`<span><b>${c.hora}</b><br>${c.nombre}<br><small>${c.servicio}</small></span>`;
+  const b=document.createElement('button');b.textContent='X';b.style.width='auto';b.style.background='red';b.style.padding='8px 12px';
+  b.onclick=async()=>{await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,pass})});verCitas()};
+  div.appendChild(b);lista.appendChild(div);
+ })
+}
+document.getElementById('fecha').valueAsDate=new Date();
+</script>
+</body>
+</html>
