@@ -9,8 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,sans-serif}
 body{background:var(--bg);color:#1f2937}
 header{background:var(--indigo);color:white;padding:22px 20px;text-align:center}
-header h1{font-size:26px;letter-spacing:.5px}
-header p.lema{opacity:.9;margin-top:4px;font-size:14px}
+header h1{font-size:26px} header p.lema{opacity:.9;margin-top:4px;font-size:14px}
 header p.ciudad{margin-top:8px;background:rgba(255,255,255,.2);display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px}
 .container{max-width:480px;margin:24px auto;background:white;border-radius:16px;box-shadow:0 8px 24px rgba(79,70,229,.15);padding:22px}
 label{font-weight:600;font-size:14px;margin:14px 0 6px;display:block}
@@ -24,10 +23,8 @@ input:focus,select:focus{border-color:var(--indigo)}
 .btn-primary{width:100%;background:var(--indigo);color:white;border:none;padding:14px;border-radius:12px;font-weight:700;margin-top:20px;cursor:pointer;font-size:16px}
 .btn-primary:hover{background:var(--indigo-dark)}
 .confirmacion{display:none;text-align:center;padding:30px 20px}
-.confirmacion h2{color:var(--indigo)}
-.resumen{background:#f5f3ff;border-radius:12px;padding:14px;margin:16px 0;text-align:left;font-size:14px;line-height:1.6}
-footer{text-align:center;padding:22px;font-size:12px;color:#6b7280}
-footer b{color:var(--indigo)}
+.confirmacion h2{color:var(--indigo)}.resumen{background:#f5f3ff;border-radius:12px;padding:14px;margin:16px 0;text-align:left;font-size:14px;line-height:1.6}
+footer{text-align:center;padding:22px;font-size:12px;color:#6b7280} footer b{color:var(--indigo)}
 </style>
 </head>
 <body>
@@ -41,7 +38,7 @@ footer b{color:var(--indigo)}
 <label>Servicio</label>
 <select id="servicio">
 <option value="">Selecciona un servicio</option>
-<option>Corte Clásico - $15.000</option>
+<option>Corte Clásico - $18.000</option>
 <option>Corte + Barba - $25.000</option>
 <option>Degradado - $20.000</option>
 <option>Afeitado - $12.000</option>
@@ -59,7 +56,7 @@ footer b{color:var(--indigo)}
 
 <label>WhatsApp</label>
 <input type="tel" id="whatsapp" placeholder="Ej: 3001234567" maxlength="10">
-<div class="error" id="error-wpp">Debe tener 10 dígitos y empezar por 3</div>
+<div class="error" id="error-wpp">Debe tener 10 números y empezar por 3</div>
 
 <button class="btn-primary" onclick="agendar()">Agendar por WhatsApp</button>
 </div>
@@ -79,103 +76,52 @@ AgendaYa - Tu tiempo, en buenas manos
 </footer>
 
 <script>
-const horasLista = ["08:00","09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"];
-const fechaInput = document.getElementById('fecha');
-const horasDiv = document.getElementById('horas');
-
-// Fecha mínima = hoy
-const hoy = new Date().toISOString().split('T')[0];
-fechaInput.min = hoy;
-
-fechaInput.addEventListener('change', renderHoras);
+const horasLista=["08:00","09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00","18:00"];
+const fechaInput=document.getElementById('fecha');
+const horasDiv=document.getElementById('horas');
+const errorFecha=document.getElementById('error-fecha');
+const hoyISO=new Date().toISOString().split('T')[0];
+fechaInput.min=hoyISO;
+fechaInput.addEventListener('change',renderHoras);
 
 function renderHoras(){
-const errorFecha = document.getElementById('error-fecha');
-errorFecha.style.display='none';
-horasDiv.innerHTML='';
-
-const fechaSel = new Date(fechaInput.value + 'T00:00:00');
-if(isNaN(fechaSel)) return;
-
-// 4. Bloquea domingos (0=domingo)
-if(fechaSel.getDay()===0){
-errorFecha.textContent='Los domingos no hay servicio. Elige otro día.';
-errorFecha.style.display='block';
-return;
+  horasDiv.innerHTML=''; errorFecha.style.display='none';
+  const val=fechaInput.value; if(!val) return;
+  const f=new Date(val+'T00:00:00');
+  // PUNTO 4: bloquea domingos
+  if(f.getDay()===0){ errorFecha.textContent='Los domingos no hay servicio. Elige otro día.'; errorFecha.style.display='block'; return; }
+  const ahora=new Date(); const esHoy=val===hoyISO;
+  horasLista.forEach(h=>{
+    const btn=document.createElement('button'); btn.className='hora-btn'; btn.textContent=h; btn.type='button';
+    // PUNTO 3: horas pasadas
+    if(esHoy){ const [hh,mm]=h.split(':').map(Number); const d=new Date(); d.setHours(hh,mm,0,0); if(d < ahora) btn.disabled=true; }
+    btn.onclick=()=>{ document.querySelectorAll('.hora-btn').forEach(b=>b.classList.remove('activa')); btn.classList.add('activa'); };
+    horasDiv.appendChild(btn);
+  });
 }
-
-const ahora = new Date();
-const esHoy = fechaInput.value === hoy;
-
-horasLista.forEach(h=>{
-const btn = document.createElement('button');
-btn.className='hora-btn';
-btn.textContent=h;
-btn.type='button';
-
-// 3. Bloquea horas pasadas si es hoy
-if(esHoy){
-const [hh,mm] = h.split(':').map(Number);
-const horaDate = new Date();
-horaDate.setHours(hh,mm,0,0);
-if(horaDate < ahora){
-btn.disabled = true;
-}
-}
-
-btn.onclick=()=>{
-document.querySelectorAll('.hora-btn').forEach(b=>b.classList.remove('activa'));
-btn.classList.add('activa');
-};
-horasDiv.appendChild(btn);
-});
-}
-
-// 5. Valida WhatsApp sin alert
 function validarWPP(){
-const wpp = document.getElementById('whatsapp').value.trim();
-const error = document.getElementById('error-wpp');
-const regex = /^3\d{9}$/; // empieza por 3 y 10 dígitos
-if(!regex.test(wpp)){
-error.style.display='block';
-return false;
+  const wpp=document.getElementById('whatsapp').value.trim();
+  const err=document.getElementById('error-wpp');
+  const ok=/^3\d{9}$/.test(wpp);
+  err.style.display=ok?'none':'block'; return ok;
 }
-error.style.display='none';
-return true;
-}
-document.getElementById('whatsapp').addEventListener('input', validarWPP);
+document.getElementById('whatsapp').addEventListener('input',validarWPP);
 
 function agendar(){
-const servicio = document.getElementById('servicio').value;
-const fecha = fechaInput.value;
-const horaActiva = document.querySelector('.hora-btn.activa');
-const nombre = document.getElementById('nombre').value.trim();
-const wpp = document.getElementById('whatsapp').value.trim();
-
-if(!servicio ||!fecha ||!horaActiva ||!nombre){
-alert('Por favor completa todos los campos'); // solo para campos vacíos, el de wpp es inline
-return;
-}
-if(!validarWPP()) return;
-
-const hora = horaActiva.textContent;
-
-// 6. Pantalla de confirmación
-document.getElementById('formulario').style.display='none';
-document.getElementById('confirmacion').style.display='block';
-document.getElementById('resumen').innerHTML=`
-<b>Servicio:</b> ${servicio}<br>
-<b>Fecha:</b> ${fecha}<br>
-<b>Hora:</b> ${hora}<br>
-<b>Cliente:</b> ${nombre}<br>
-<b>WhatsApp:</b> ${wpp}<br>
-<b>Ciudad:</b> Cartagena
-`;
-
-// Abre WhatsApp real del negocio
-const mensaje = `Hola AgendaYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}.`;
-const url = `https://wa.me/57${wpp}?text=${encodeURIComponent(mensaje)}`;
-// window.open(url,'_blank'); // descomenta si quieres que se abra automáticamente
+  const servicio=document.getElementById('servicio').value;
+  const fecha=fechaInput.value;
+  const horaBtn=document.querySelector('.hora-btn.activa');
+  const nombre=document.getElementById('nombre').value.trim();
+  if(!servicio||!fecha||!horaBtn||!nombre){ alert('Completa todos los campos'); return; }
+  if(!validarWPP()) return;
+  const hora=horaBtn.textContent;
+  // PUNTO 6: pantalla confirmación
+  document.getElementById('formulario').style.display='none';
+  document.getElementById('confirmacion').style.display='block';
+  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>Cliente:</b> ${nombre}<br><b>WhatsApp:</b> ${document.getElementById('whatsapp').value}<br><b>Ciudad:</b> Cartagena`;
+  const msg=`Hola AgendaYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}. - Cartagena`;
+  const url=`https://wa.me/57${document.getElementById('whatsapp').value}?text=${encodeURIComponent(msg)}`;
+  setTimeout(()=>window.open(url,'_blank'),800);
 }
 renderHoras();
 </script>
