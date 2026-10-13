@@ -1,68 +1,800 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgendaYa - Cartagena</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E2559">
+<title>AgendaYa · Prototipo navegable del PMV</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-body{font-family:Arial;background:#f0f4ff;margin:0}header{background:#4a80ff;color:#fff;padding:20px;text-align:center} .card{background:#fff;max-width:500px;margin:30px auto;padding:20px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1)} input,select{width:100%;padding:12px;margin:8px 0 12px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box} .horas{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0} .hora-btn{padding:8px 12px;border:1px solid #4a80ff;border-radius:6px;cursor:pointer;background:#fff} .hora-btn.activa{background:#4a80ff;color:#fff} .btn-principal{background:#4a80ff;color:#fff;border:none;padding:14px;width:100%;border-radius:8px;font-weight:bold;cursor:pointer} #error-wpp{color:red;font-size:13px;display:none} #confirmacion{display:none;text-align:center}
+:root{
+  --indigo:#4F46E5; --indigo-osc:#3730A3; --noche:#1E2559; --lavanda:#E0E3FF; --fondo:#F5F6FB;
+  --borde:#E4E7F2; --borde-input:#D5D9EA; --tinta:#1A2140; --gris:#5B6380; --gris-osc:#3F4660; --blanco:#FFFFFF;
+  --exito:#16A34A; --exito-txt:#166534; --exito-fondo:#DCFCE7; --alerta:#DC2626; --alerta-txt:#B91C1C; --alerta-fondo:#FEE2E2;
+  --rosa:#DB2777; --rosa-fondo:#FCE7F3; --cian:#0284C7; --cian-fondo:#E0F2FE; --morado:#7C3AED; --morado-fondo:#EDE9FE;
+  --ya-oscuro:#A5ABFF; --pildora:#2B3270;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* El prototipo es claro por diseño: en modo oscuro se conservan los mismos tonos de la marca. */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --fondo:#F5F6FB; --blanco:#FFFFFF; --tinta:#1A2140; --borde:#E4E7F2; }
+}
+:root[data-theme="dark"]{ --fondo:#F5F6FB; --blanco:#FFFFFF; --tinta:#1A2140; --borde:#E4E7F2; }
+
+html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after{ box-sizing: border-box; }
+body{ margin:0; background: var(--fondo); color: var(--tinta); font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+a{ color: var(--indigo); }
+button, input, select, textarea{ font: inherit; color: inherit; }
+img, svg{ max-width: 100%; }
+[hidden]{ display: none !important; }
+
+.ic{ width:1em; height:1em; flex:0 0 auto; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.screen{ display:none; min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+.screen.activa{ display:block; }
+.pantalla-shell.activa{ display:flex; flex-wrap:wrap; }
+.pantalla-top.activa{ display:flex; flex-direction:column; }
+
+/* Logo */
+.logo{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:var(--noche); --logo-bg: var(--blanco); }
+.logo .ic{ width:40px; height:40px; }
+.logo__texto{ font-weight:800; font-size:25px; letter-spacing:-.03em; line-height:1; }
+.logo__texto b{ font-weight:800; color:var(--indigo); }
+.logo--oscuro{ color:#fff; --logo-bg: var(--noche); }
+.logo--oscuro .logo__texto b{ color:var(--ya-oscuro); }
+
+/* Barra superior */
+.topbar{ min-height:72px; background:var(--blanco); border-bottom:1px solid var(--borde); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 6%; }
+.topbar--derecha{ justify-content:flex-end; }
+.topbar__acciones{ display:flex; align-items:center; gap:14px; }
+.btn-icono{ width:44px; height:44px; border:0; border-radius:10px; background:transparent; color:var(--tinta); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.btn-icono:hover{ background:var(--fondo); }
+.btn-icono .ic{ width:22px; height:22px; }
+.avatar{ display:flex; align-items:center; gap:6px; border:0; background:transparent; padding:0; cursor:pointer; }
+.avatar__ini{ width:38px; height:38px; border-radius:50%; background:var(--indigo); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.avatar .ic{ width:16px; height:16px; color:var(--gris); }
+.buscador{ flex:0 1 490px; display:flex; align-items:center; gap:10px; height:48px; padding:0 16px; border-radius:10px; border:1px solid var(--borde); background:var(--fondo); color:var(--gris); }
+.buscador:focus-within{ border-color:var(--indigo); box-shadow:0 0 0 4px var(--lavanda); }
+.buscador input{ flex:1 1 auto; min-width:0; border:0; outline:0; background:transparent; font-size:15px; color:var(--tinta); }
+.buscador .ic{ width:18px; height:18px; }
+
+/* Menú lateral */
+.sidebar{ flex:1 1 240px; background:var(--noche); color:#fff; padding:20px 14px 24px; display:flex; flex-direction:column; gap:6px; }
+.sidebar .logo{ padding:4px 10px 22px; }
+.sidebar .logo .ic{ width:34px; height:34px; }
+.sidebar .logo__texto{ font-size:22px; }
+.nav-item{ display:flex; align-items:center; gap:12px; height:48px; padding:0 20px; border-radius:10px; color:#fff; font-size:15px; font-weight:500; text-decoration:none; }
+.nav-item .ic{ width:20px; height:20px; }
+.nav-item:hover{ background:rgba(255,255,255,.08); }
+.nav-item.activo{ background:var(--indigo); font-weight:600; }
+.contenido{ flex:999 1 560px; min-width:0; display:flex; flex-direction:column; }
+.contenido .topbar{ padding:12px 40px; }
+.panel{ padding:36px 40px 120px; max-width:884px; display:flex; flex-direction:column; gap:22px; }
+@media (max-width:800px){
+  .sidebar{ flex-direction:row; flex-wrap:wrap; gap:4px; padding:12px; }
+  .sidebar .logo{ width:100%; padding:6px 10px 10px; }
+  .nav-item{ height:40px; padding:0 12px; font-size:14px; }
+}
+@media (max-width:640px){
+  .contenido .topbar{ padding:12px 20px; }
+  .panel{ padding:28px 20px 120px; }
+}
+
+/* Textos */
+.titulo{ margin:0; font-size:32px; font-weight:800; letter-spacing:-.02em; color:var(--noche); }
+.subtitulo{ margin:6px 0 0; font-size:15px; color:var(--gris); }
+.subtitulo--md{ font-size:16px; color:var(--gris-osc); }
+.h2{ margin:0; font-size:19px; font-weight:700; color:var(--noche); }
+.h2--indigo{ color:var(--indigo); }
+.fila-titulo{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:6px; }
+.bloque{ display:flex; flex-direction:column; gap:12px; }
+.bloque--14{ gap:14px; }
+.seccion-titulo{ display:flex; align-items:center; gap:8px; font-size:17px; font-weight:700; color:var(--noche); margin:0; }
+.seccion-titulo .ic{ width:20px; height:20px; }
+
+/* Botones */
+.btn{ display:flex; align-items:center; justify-content:center; gap:12px; width:100%; height:54px; padding:0 20px; border-radius:12px; border:0; background:var(--indigo); color:#fff; font-size:16px; font-weight:700; text-decoration:none; cursor:pointer; }
+.btn:hover{ background:var(--indigo-osc); }
+.btn .ic{ width:20px; height:20px; }
+.btn--contorno{ background:var(--blanco); color:var(--indigo); border:1.5px solid var(--indigo); }
+.btn--contorno:hover{ background:var(--lavanda); }
+.btn--peligro{ background:var(--blanco); color:var(--alerta); border:1.5px solid var(--alerta); }
+.btn--peligro:hover{ background:#FEF2F2; }
+.btn--sm{ height:44px; font-size:15px; border-radius:10px; }
+.btn--grande{ height:60px; font-size:18px; }
+.enlace{ font-size:14px; font-weight:700; text-decoration:none; color:var(--indigo); white-space:nowrap; }
+.enlace:hover{ text-decoration:underline; }
+.enlace--sub{ text-decoration:underline; font-weight:600; }
+
+/* Chips */
+.chip{ display:inline-flex; align-items:center; height:26px; padding:0 12px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; }
+.chip--ok{ background:var(--exito-fondo); color:var(--exito-txt); }
+.chip--pend{ background:var(--lavanda); color:var(--indigo-osc); }
+.chip--hecha{ background:var(--borde); color:var(--gris-osc); }
+.chip--cancel{ background:var(--alerta-fondo); color:var(--alerta-txt); }
+
+/* Tarjetas de cita */
+.tarjeta{ background:var(--blanco); border:1px solid var(--borde); border-radius:14px; padding:18px 20px; }
+.lista{ display:flex; flex-direction:column; gap:14px; }
+.cita{ display:flex; align-items:center; gap:18px; }
+.cita--arriba{ align-items:flex-start; }
+.cita__info{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.cita__nombre{ font-size:16px; font-weight:700; color:var(--noche); }
+.cita__nombre--lg{ font-size:17px; }
+.cita__detalle{ font-size:14px; color:var(--gris); }
+.cita__ir{ width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--gris); border-radius:10px; }
+.cita__ir:hover{ background:var(--fondo); }
+.cita__ir .ic{ width:18px; height:18px; }
+.cita-acciones{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; padding-left:74px; margin-top:14px; }
+.cita-confirmar{ margin-top:14px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:10px; background:#FEF2F2; color:var(--alerta-txt); font-size:14px; font-weight:600; }
+.cita-confirmar__btns{ display:flex; gap:8px; }
+.cita-confirmar .btn{ width:auto; height:40px; padding:0 16px; font-size:14px; }
+.cita--cancelada{ opacity:.6; }
+@media (max-width:560px){ .cita-acciones{ padding-left:0; } }
+
+/* Íconos de categoría */
+.icono{ width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.icono .ic{ width:24px; height:24px; }
+.icono--cuadro{ border-radius:14px; width:60px; height:60px; }
+.icono--cuadro .ic{ width:26px; height:26px; }
+.icono--med{ background:var(--lavanda); color:var(--indigo); }
+.icono--bel{ background:var(--rosa-fondo); color:var(--rosa); }
+.icono--dep{ background:var(--exito-fondo); color:var(--exito); }
+.icono--odo{ background:var(--cian-fondo); color:var(--cian); }
+.icono--vet{ background:var(--morado-fondo); color:var(--morado); }
+
+/* Campos */
+.campo{ display:flex; flex-direction:column; gap:8px; }
+.campo label, .etiqueta{ font-size:14px; font-weight:600; color:var(--tinta); }
+.etiqueta--md{ font-size:15px; font-weight:700; color:var(--noche); }
+.entrada{ display:flex; align-items:center; gap:10px; height:52px; padding:0 14px; border-radius:10px; background:var(--blanco); border:1.5px solid var(--borde-input); color:var(--gris); }
+.entrada:focus-within{ border-color:var(--indigo); box-shadow:0 0 0 4px var(--lavanda); }
+.entrada input{ flex:1 1 auto; min-width:0; height:100%; border:0; outline:0; padding:0; background:transparent; font-size:15px; font-weight:500; color:var(--tinta); }
+.entrada .ic{ width:20px; height:20px; }
+.entrada--ojo{ padding-right:4px; }
+.ojo{ width:44px; height:44px; flex:0 0 auto; border:0; background:transparent; color:var(--indigo); border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.ojo .ic{ width:20px; height:20px; }
+.selector{ width:100%; height:50px; border-radius:10px; border:1px solid var(--borde-input); background:var(--blanco); padding:0 14px; font-size:15px; font-weight:500; color:var(--tinta); }
+.selector:focus{ outline:2px solid var(--indigo); outline-offset:2px; }
+.selector--fecha{ max-width:320px; height:48px; }
+.area{ width:100%; min-height:84px; padding:12px 14px; border-radius:10px; border:1.5px solid var(--borde-input); background:var(--blanco); font-size:15px; color:var(--tinta); resize:vertical; }
+.area:focus{ outline:0; border-color:var(--tinta); }
+
+/* Pildora de paso (como en el video) */
+.caption{ position:fixed; left:16px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:5; display:inline-flex; align-items:center; gap:10px; max-width:calc(100vw - 32px); background:var(--pildora); color:#fff; font-size:15px; font-weight:600; padding:12px 18px; border-radius:12px; box-shadow:0 8px 24px rgba(30,37,89,.25); text-decoration:none; }
+a.caption:hover{ background:var(--noche); }
+.caption__cta{ background:var(--indigo); padding:4px 10px; border-radius:8px; font-size:13px; font-weight:700; white-space:nowrap; }
+
+/* Pantalla: marca */
+.pantalla-marca{ padding:48px 5% 120px; }
+.marca{ display:grid; grid-template-columns:1fr; gap:40px; max-width:1440px; margin:0 auto; }
+@media (min-width:1100px){ .marca{ grid-template-columns:500px minmax(0,1fr); gap:56px; } }
+.sobretitulo{ font-size:13px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--indigo); }
+.marca__izq{ display:flex; flex-direction:column; gap:22px; }
+.marca__logo{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.marca__logo .ic{ width:112px; height:112px; color:var(--noche); --logo-bg: var(--fondo); }
+.palabra{ font-size:clamp(48px, 8vw, 78px); font-weight:800; letter-spacing:-.04em; line-height:1; color:var(--noche); }
+.palabra b{ color:var(--indigo); }
+.marca__eslogan{ font-size:22px; font-weight:600; color:var(--gris-osc); }
+.marca__desc{ margin:0; font-size:17px; line-height:1.6; }
+.valores{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:16px; }
+.valor{ padding:18px 16px; }
+.valor__t{ font-size:16px; font-weight:700; color:var(--noche); margin-bottom:8px; }
+.valor__d{ font-size:13px; line-height:1.45; color:var(--gris); }
+.marca__der{ display:flex; flex-direction:column; gap:20px; min-width:0; }
+.fila3{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px; }
+.tarjeta-marca{ padding:22px; min-height:210px; display:flex; flex-direction:column; justify-content:space-between; gap:18px; }
+.tarjeta-marca--inicio{ justify-content:flex-start; gap:16px; }
+.tarjeta-marca--oscura{ background:var(--noche); border-color:var(--noche); color:#fff; }
+.etiqueta-marca{ font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--gris); }
+.pie{ font-size:12px; line-height:1.4; color:var(--gris); }
+.tarjeta-marca--oscura .etiqueta-marca, .tarjeta-marca--oscura .pie{ color:var(--lavanda); }
+.tarjeta-marca .logo .ic{ width:36px; height:36px; }
+.tarjeta-marca .logo__texto{ font-size:26px; }
+.app-iconos{ display:flex; align-items:flex-end; gap:14px; }
+.app-icono{ width:96px; height:96px; border-radius:24px; background:var(--indigo); color:#fff; display:flex; align-items:center; justify-content:center; --logo-bg: var(--indigo); }
+.app-icono .ic{ width:58px; height:58px; }
+.app-icono--sm{ width:44px; height:44px; border-radius:12px; }
+.app-icono--sm .ic{ width:26px; height:26px; }
+.paleta{ display:grid; grid-template-columns:repeat(auto-fit, minmax(105px,1fr)); gap:16px; }
+.muestra{ background:var(--blanco); border:1px solid var(--borde); border-radius:12px; overflow:hidden; }
+.muestra__color{ height:118px; }
+.muestra__info{ padding:12px 14px 14px; }
+.muestra__nombre{ font-size:15px; font-weight:700; color:var(--noche); }
+.muestra__hex{ font-size:12px; line-height:1.4; color:var(--gris); }
+.aa{ font-size:74px; font-weight:800; line-height:1; letter-spacing:-.03em; color:var(--noche); }
+.tipo__nombre{ font-size:17px; font-weight:700; color:var(--noche); margin-bottom:4px; }
+.estados{ display:flex; gap:8px; flex-wrap:wrap; }
+.iconos-cat{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+.iconos-cat .icono{ width:auto; height:58px; border-radius:12px; }
+
+/* Pantalla: inicio de sesión */
+.pantalla-login{ position:relative; overflow:hidden; }
+.pantalla-login.activa{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; padding:64px 24px 120px; }
+.circulo{ position:absolute; border-radius:50%; background:var(--lavanda); pointer-events:none; }
+.circulo--a{ left:-260px; top:-260px; width:520px; height:520px; }
+.circulo--b{ right:-300px; bottom:-300px; width:720px; height:720px; }
+.login__marca{ position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
+.login__marca .logo{ --logo-bg: var(--fondo); gap:12px; }
+.login__marca .logo .ic{ width:62px; height:62px; }
+.login__marca .logo__texto{ font-size:46px; }
+.login__eslogan{ font-size:16px; font-weight:500; color:var(--gris-osc); }
+.login__tarjeta{ position:relative; width:100%; max-width:420px; margin:0; background:var(--blanco); border:1px solid var(--borde); border-radius:20px; padding:32px; box-shadow:0 12px 32px rgba(30,37,89,.08); display:flex; flex-direction:column; gap:18px; }
+.login__titulo{ margin:0 0 4px; text-align:center; font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--noche); }
+.login__fila{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.check{ display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; color:var(--gris-osc); cursor:pointer; }
+.check input{ width:18px; height:18px; margin:0; accent-color:var(--indigo); }
+.separador{ display:flex; align-items:center; gap:12px; color:var(--gris); font-size:13px; }
+.separador::before, .separador::after{ content:""; flex:1 1 auto; height:1px; background:var(--borde); }
+
+/* Pantallas con barra superior */
+.pagina{ flex:1 1 auto; width:100%; padding:36px 8% 120px; display:flex; flex-direction:column; gap:22px; }
+.pagina--estrecha{ max-width:720px; margin:0 auto; padding:36px 24px 120px; }
+@media (max-width:640px){ .pagina{ padding:28px 20px 120px; } }
+.buscar-campo{ display:flex; align-items:center; gap:12px; height:56px; padding:0 18px; border-radius:12px; border:1px solid var(--borde-input); background:var(--blanco); color:var(--gris); }
+.buscar-campo:focus-within{ border-color:var(--indigo); box-shadow:0 0 0 4px var(--lavanda); }
+.buscar-campo input{ flex:1 1 auto; min-width:0; border:0; outline:0; background:transparent; font-size:16px; color:var(--tinta); }
+.buscar-campo .ic{ width:20px; height:20px; }
+.categorias{ display:flex; flex-wrap:wrap; gap:16px; }
+.categoria{ flex:1 1 160px; display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 12px; border-radius:14px; background:var(--blanco); border:1.5px solid var(--borde); cursor:pointer; font-size:15px; font-weight:700; color:var(--noche); }
+.categoria:hover{ border-color:#C7CBF5; }
+.categoria[aria-pressed="true"]{ border-color:var(--indigo); box-shadow:0 0 0 3px var(--lavanda); }
+.filtros{ display:flex; flex-wrap:wrap; gap:16px; }
+.filtros .campo{ flex:1 1 220px; }
+
+/* Agendar */
+.volver{ display:flex; align-items:center; gap:12px; }
+.volver__btn{ width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:var(--noche); }
+.volver__btn:hover{ background:var(--lavanda); }
+.volver__btn .ic{ width:24px; height:24px; }
+.volver .titulo{ font-size:28px; }
+.pasos{ display:flex; align-items:center; gap:12px; }
+.paso{ display:flex; align-items:center; gap:10px; font-size:15px; font-weight:500; color:var(--gris-osc); white-space:nowrap; }
+.paso__num{ width:32px; height:32px; border-radius:50%; background:var(--borde); color:var(--gris-osc); font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.paso--activo{ color:var(--indigo); font-weight:700; }
+.paso--activo .paso__num{ background:var(--indigo); color:#fff; }
+.pasos__linea{ flex:1 1 auto; height:1px; background:#CBD0E3; }
+@media (max-width:560px){ .paso__txt{ display:none; } .paso--activo .paso__txt{ display:inline; } }
+.servicio{ display:flex; align-items:center; gap:16px; padding:20px; }
+.horas{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
+@media (max-width:560px){ .horas{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+.hora{ height:46px; border-radius:10px; border:1px solid var(--borde-input); background:var(--blanco); color:var(--tinta); font-size:15px; font-weight:700; cursor:pointer; }
+.hora:hover{ border-color:var(--indigo); }
+.hora[aria-pressed="true"]{ background:var(--indigo-osc); border-color:var(--indigo-osc); color:#fff; }
+
+/* Confirmación */
+.confirmacion{ align-items:center; text-align:center; max-width:560px; }
+.exito{ position:relative; width:136px; height:116px; display:flex; align-items:center; justify-content:center; }
+.exito__circulo{ width:92px; height:92px; border-radius:50%; background:var(--exito); color:#fff; display:flex; align-items:center; justify-content:center; }
+.exito__circulo .ic{ width:44px; height:44px; stroke-width:3; }
+.confeti{ position:absolute; width:4px; height:12px; border-radius:2px; }
+.confeti--punto{ width:6px; height:6px; border-radius:50%; }
+.resumen{ width:100%; text-align:left; padding:22px 24px; display:flex; flex-direction:column; gap:16px; }
+.resumen__lineas{ display:flex; flex-direction:column; gap:10px; }
+.resumen__linea{ display:flex; align-items:center; gap:12px; font-size:15px; font-weight:600; }
+.resumen__linea .ic{ width:20px; height:20px; color:var(--noche); }
+.nota-info{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gris); }
+.nota-info .ic{ width:16px; height:16px; }
+
+/* Mis citas */
+.tabs{ display:flex; }
+.tab{ flex:1 1 0; height:48px; padding:0; border:0; border-bottom:3px solid var(--borde); background:transparent; color:var(--gris); font-size:15px; font-weight:700; cursor:pointer; }
+.tab:hover{ color:var(--indigo-osc); }
+.tab[aria-selected="true"]{ color:var(--indigo); border-bottom-color:var(--indigo); }
 </style>
 </head>
 <body>
-<header><h1>AgendaYa</h1><p>Tu tiempo, en buenas manos</p><small>Reserva tu corte en segundos - Cartagena</small></header>
-<div class="card" id="formulario">
-<label>Servicio</label>
-<select id="servicio"><option value="">Selecciona un servicio</option><option>Corte Clásico - $18.000</option><option>Barba - $12.000</option><option>Corte + Barba - $25.000</option></select>
-<label>Fecha</label><input type="date" id="fecha">
-<label>Hora disponible</label><div id="contenedor-horas" class="horas"></div>
-<label>Tu nombre</label><input type="text" id="nombre" placeholder="Ej: Faneth Mejia">
-<label>WhatsApp</label><input type="text" id="whatsapp" placeholder="Ej: 3001234567"><div id="error-wpp">Debe tener 10 números y empezar por 3</div>
-<button class="btn-principal" onclick="agendar()">Agendar por WhatsApp</button>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><rect x="3" y="5" width="17" height="15" rx="3"/><path d="M3 10h17"/><path d="M8 3v4"/><path d="M15 3v4"/><path d="M7.5 14.5l3 3 5-5"/><circle cx="18.5" cy="18.5" r="4.5" fill="var(--logo-bg, #fff)"/><path d="M18.5 16.4v2.3l1.5 1"/></symbol>
+  <symbol id="i-usuario" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-candado" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-ojo" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-ojo-cerrado" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A10.5 10.5 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a10.4 10.4 0 0 0 5.4-1.4"/></symbol>
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="M4.9 4.9l2.1 2.1"/><path d="M17 17l2.1 2.1"/><path d="M4.9 19.1L7 17"/><path d="M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-campana" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-derecha" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-izquierda" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="i-estetoscopio" viewBox="0 0 24 24"><path d="M5 4v4a6 6 0 0 0 12 0V4"/><path d="M11 14v3a4 4 0 0 0 8 0v-1"/><circle cx="19" cy="13" r="2.5"/></symbol>
+  <symbol id="i-tijeras" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9"/><path d="M14.5 14.5L20 20"/><path d="M8.1 8.1L12 12"/></symbol>
+  <symbol id="i-pesa" viewBox="0 0 24 24"><path d="M6 7v10"/><path d="M3 9v6"/><path d="M18 7v10"/><path d="M21 9v6"/><path d="M6 12h12"/></symbol>
+  <symbol id="i-diente" viewBox="0 0 24 24"><path d="M7 4c-2 0-3.5 1.6-3.5 3.8 0 1.6.7 2.6 1.2 4 .6 1.7.8 3.6 1 5.6.1 1.4.7 2.6 1.6 2.6s1.3-1.2 1.6-2.4c.4-1.4.9-2.6 2.1-2.6s1.7 1.2 2.1 2.6c.3 1.2.7 2.4 1.6 2.4s1.5-1.2 1.6-2.6c.2-2 .4-3.9 1-5.6.5-1.4 1.2-2.4 1.2-4C20.5 5.6 19 4 17 4c-1.6 0-2.6.9-5 .9S8.6 4 7 4z"/></symbol>
+  <symbol id="i-pata" viewBox="0 0 24 24"><circle cx="7" cy="9" r="2"/><circle cx="17" cy="9" r="2"/><circle cx="4.5" cy="14" r="1.8"/><circle cx="19.5" cy="14" r="1.8"/><path d="M12 12c-3 0-5.5 3-5.5 5.5 0 1.7 1.3 2.5 2.5 2.5 1 0 2-.5 3-.5s2 .5 3 .5c1.2 0 2.5-.8 2.5-2.5C17.5 15 15 12 12 12z"/></symbol>
+</svg>
+
+<div id="app">
+
+<!-- ============ MARCA ============ -->
+<section id="marca" class="screen pantalla-marca">
+  <div class="marca">
+    <div class="marca__izq">
+      <div class="sobretitulo">Identidad de marca · Propuesta base</div>
+      <div class="marca__logo">
+        <svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg>
+        <div class="palabra">Agenda<b>Ya</b></div>
+      </div>
+      <div class="marca__eslogan">Tu tiempo, en buenas manos</div>
+      <p class="marca__desc">Plataforma web para buscar servicios y agendar citas en línea con médicos, salones de belleza, centros deportivos, odontólogos y veterinarios, con recordatorios y la gestión de tus citas en un solo lugar.</p>
+      <div class="valores">
+        <div class="tarjeta valor"><div class="valor__t">Confiable</div><div class="valor__d">Tu cita queda registrada y confirmada.</div></div>
+        <div class="tarjeta valor"><div class="valor__t">Rápida</div><div class="valor__d">Agendar toma tres pasos.</div></div>
+        <div class="tarjeta valor"><div class="valor__t">Cercana</div><div class="valor__d">Te habla de tú y sin tecnicismos.</div></div>
+      </div>
+    </div>
+
+    <div class="marca__der">
+      <div class="fila3">
+        <div class="tarjeta tarjeta-marca">
+          <div class="etiqueta-marca">Logo sobre claro</div>
+          <span class="logo"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></span>
+          <div class="pie">Inicio de sesión, documentos, F-144</div>
+        </div>
+        <div class="tarjeta tarjeta-marca tarjeta-marca--oscura">
+          <div class="etiqueta-marca">Logo sobre oscuro</div>
+          <span class="logo logo--oscuro"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></span>
+          <div class="pie">Menú lateral, redes sociales</div>
+        </div>
+        <div class="tarjeta tarjeta-marca">
+          <div class="etiqueta-marca">Ícono de la app</div>
+          <div class="app-iconos">
+            <div class="app-icono"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg></div>
+            <div class="app-icono app-icono--sm"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg></div>
+          </div>
+          <div class="pie">Favicon y acceso directo</div>
+        </div>
+      </div>
+
+      <div class="paleta">
+        <div class="muestra"><div class="muestra__color" style="background:#4F46E5"></div><div class="muestra__info"><div class="muestra__nombre">Índigo</div><div class="muestra__hex">#4F46E5 · botones</div></div></div>
+        <div class="muestra"><div class="muestra__color" style="background:#1E2559"></div><div class="muestra__info"><div class="muestra__nombre">Noche</div><div class="muestra__hex">#1E2559 · menú</div></div></div>
+        <div class="muestra"><div class="muestra__color" style="background:#E0E3FF"></div><div class="muestra__info"><div class="muestra__nombre">Lavanda</div><div class="muestra__hex">#E0E3FF · fondos</div></div></div>
+        <div class="muestra"><div class="muestra__color" style="background:#16A34A"></div><div class="muestra__info"><div class="muestra__nombre">Éxito</div><div class="muestra__hex">#16A34A · confirmada</div></div></div>
+        <div class="muestra"><div class="muestra__color" style="background:#DC2626"></div><div class="muestra__info"><div class="muestra__nombre">Alerta</div><div class="muestra__hex">#DC2626 · cancelar</div></div></div>
+        <div class="muestra"><div class="muestra__color" style="background:#1A2140"></div><div class="muestra__info"><div class="muestra__nombre">Tinta</div><div class="muestra__hex">#1A2140 · textos</div></div></div>
+      </div>
+
+      <div class="fila3">
+        <div class="tarjeta tarjeta-marca">
+          <div class="etiqueta-marca">Tipografía</div>
+          <div class="aa">Aa</div>
+          <div><div class="tipo__nombre">Plus Jakarta Sans</div><div class="pie">Títulos 700–800, textos 400–600. Gratuita en Google Fonts.</div></div>
+        </div>
+        <div class="tarjeta tarjeta-marca tarjeta-marca--inicio">
+          <div class="etiqueta-marca">Botones y estados</div>
+          <button type="button" class="btn btn--sm">Agendar cita</button>
+          <button type="button" class="btn btn--contorno btn--sm">Crear cuenta</button>
+          <div class="estados"><span class="chip chip--ok">Confirmada</span><span class="chip chip--pend">Pendiente</span></div>
+        </div>
+        <div class="tarjeta tarjeta-marca tarjeta-marca--inicio">
+          <div class="etiqueta-marca">Íconos de categorías</div>
+          <div class="iconos-cat">
+            <div class="icono icono--med" title="Médicos"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></div>
+            <div class="icono icono--bel" title="Belleza"><svg class="ic" aria-hidden="true"><use href="#i-tijeras"></use></svg></div>
+            <div class="icono icono--dep" title="Deportes"><svg class="ic" aria-hidden="true"><use href="#i-pesa"></use></svg></div>
+            <div class="icono icono--odo" title="Odontología"><svg class="ic" aria-hidden="true"><use href="#i-diente"></use></svg></div>
+            <div class="icono icono--vet" title="Veterinaria"><svg class="ic" aria-hidden="true"><use href="#i-pata"></use></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="caption" href="#login">AgendaYa · Prototipo navegable del PMV <span class="caption__cta">Empezar →</span></a>
+</section>
+
+<!-- ============ 1. INICIO DE SESIÓN ============ -->
+<section id="login" class="screen pantalla-login">
+  <div class="circulo circulo--a" aria-hidden="true"></div>
+  <div class="circulo circulo--b" aria-hidden="true"></div>
+  <div class="login__marca">
+    <span class="logo"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></span>
+    <div class="login__eslogan">Tu tiempo, en buenas manos</div>
+  </div>
+  <form id="form-login" class="login__tarjeta" novalidate>
+    <h1 class="login__titulo">Iniciar sesión</h1>
+    <div class="campo">
+      <label for="correo">Correo electrónico o usuario</label>
+      <div class="entrada">
+        <svg class="ic" aria-hidden="true"><use href="#i-usuario"></use></svg>
+        <input id="correo" type="text" placeholder="nombre@correo.com" autocomplete="username">
+      </div>
+    </div>
+    <div class="campo">
+      <label for="clave">Contraseña</label>
+      <div class="entrada entrada--ojo">
+        <svg class="ic" aria-hidden="true"><use href="#i-candado"></use></svg>
+        <input id="clave" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+        <button type="button" id="ojo" class="ojo" aria-label="Mostrar contraseña">
+          <svg class="ic" id="ojo-abierto" aria-hidden="true"><use href="#i-ojo"></use></svg>
+          <svg class="ic" id="ojo-cerrado" aria-hidden="true" hidden><use href="#i-ojo-cerrado"></use></svg>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn">Iniciar sesión</button>
+    <div class="login__fila">
+      <label class="check"><input type="checkbox"> Recordarme</label>
+      <a class="enlace enlace--sub" href="#login">¿Olvidaste tu contraseña?</a>
+    </div>
+    <div class="separador">o</div>
+    <a class="btn btn--contorno" href="#login">Crear cuenta</a>
+  </form>
+  <div class="caption">1. Inicio de sesión</div>
+</section>
+
+<!-- ============ 2. PÁGINA PRINCIPAL ============ -->
+<section id="inicio" class="screen pantalla-shell">
+  <nav class="sidebar" aria-label="Menú principal">
+    <a class="logo logo--oscuro" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></a>
+    <a class="nav-item activo" href="#inicio" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-casa"></use></svg>Inicio</a>
+    <a class="nav-item" href="#buscar"><svg class="ic" aria-hidden="true"><use href="#i-buscar"></use></svg>Buscar servicios</a>
+    <a class="nav-item" href="#miscitas"><svg class="ic" aria-hidden="true"><use href="#i-calendario"></use></svg>Mis citas</a>
+    <a class="nav-item" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-usuario"></use></svg>Perfil</a>
+    <a class="nav-item" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-ajustes"></use></svg>Configuración</a>
+  </nav>
+  <div class="contenido">
+    <header class="topbar">
+      <label class="buscador"><svg class="ic" aria-hidden="true"><use href="#i-buscar"></use></svg><input id="busqueda-top" type="search" placeholder="Buscar servicios, profesionales..." aria-label="Buscar servicios o profesionales"></label>
+      <div class="topbar__acciones">
+        <button type="button" class="btn-icono" aria-label="Notificaciones"><svg class="ic" aria-hidden="true"><use href="#i-campana"></use></svg></button>
+        <button type="button" class="avatar" aria-label="Cuenta de Faneth Mejía"><span class="avatar__ini">FM</span><svg class="ic" aria-hidden="true"><use href="#i-abajo"></use></svg></button>
+      </div>
+    </header>
+    <div class="panel">
+      <div><h1 class="titulo">¡Hola, Faneth!</h1><p class="subtitulo">Aquí puedes agendar tus citas de forma rápida y segura.</p></div>
+      <a class="btn btn--grande" href="#buscar"><svg class="ic" aria-hidden="true"><use href="#i-calendario"></use></svg>Agendar cita</a>
+      <div class="fila-titulo"><h2 class="h2">Tus próximas citas</h2><a class="enlace" href="#miscitas">Ver todas ›</a></div>
+      <div class="lista">
+        <div class="tarjeta cita">
+          <div class="icono icono--med"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></div>
+          <div class="cita__info"><div class="cita__nombre">Consulta médica</div><div class="cita__detalle">Dr. Carlos Pérez · Clínica Salud Vida</div><div class="cita__detalle">Mié, 7 oct 2026 · 10:30 a. m.</div></div>
+          <span class="chip chip--ok">Confirmada</span>
+          <a class="cita__ir" href="#miscitas" aria-label="Ver detalle de la consulta médica"><svg class="ic" aria-hidden="true"><use href="#i-derecha"></use></svg></a>
+        </div>
+        <div class="tarjeta cita">
+          <div class="icono icono--bel"><svg class="ic" aria-hidden="true"><use href="#i-tijeras"></use></svg></div>
+          <div class="cita__info"><div class="cita__nombre">Corte de cabello</div><div class="cita__detalle">Salón Bella Estilo</div><div class="cita__detalle">Jue, 8 oct 2026 · 4:00 p. m.</div></div>
+          <span class="chip chip--pend">Pendiente</span>
+          <a class="cita__ir" href="#miscitas" aria-label="Ver detalle del corte de cabello"><svg class="ic" aria-hidden="true"><use href="#i-derecha"></use></svg></a>
+        </div>
+        <div class="tarjeta cita">
+          <div class="icono icono--odo"><svg class="ic" aria-hidden="true"><use href="#i-diente"></use></svg></div>
+          <div class="cita__info"><div class="cita__nombre">Limpieza dental</div><div class="cita__detalle">Odontología Sonrisa</div><div class="cita__detalle">Vie, 9 oct 2026 · 9:00 a. m.</div></div>
+          <span class="chip chip--pend">Pendiente</span>
+          <a class="cita__ir" href="#miscitas" aria-label="Ver detalle de la limpieza dental"><svg class="ic" aria-hidden="true"><use href="#i-derecha"></use></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">2. Página principal: próximas citas</div>
+</section>
+
+<!-- ============ 3. BUSCAR SERVICIO ============ -->
+<section id="buscar" class="screen pantalla-top">
+  <header class="topbar">
+    <a class="logo" href="#inicio" aria-label="AgendaYa, ir al inicio"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></a>
+    <div class="topbar__acciones">
+      <button type="button" class="btn-icono" aria-label="Notificaciones"><svg class="ic" aria-hidden="true"><use href="#i-campana"></use></svg></button>
+      <button type="button" class="avatar" aria-label="Cuenta de Faneth Mejía"><span class="avatar__ini">FM</span><svg class="ic" aria-hidden="true"><use href="#i-abajo"></use></svg></button>
+    </div>
+  </header>
+  <main class="pagina">
+    <div><h1 class="titulo">Buscar servicio</h1><p class="subtitulo">Encuentra el servicio que necesitas y agenda tu cita.</p></div>
+    <label class="buscar-campo"><svg class="ic" aria-hidden="true"><use href="#i-buscar"></use></svg><input id="busqueda" type="search" placeholder="Buscar servicio, profesional o establecimiento..." aria-label="Buscar servicio, profesional o establecimiento"></label>
+    <div class="bloque">
+      <h2 class="h2 h2--indigo">Categorías</h2>
+      <div class="categorias">
+        <button type="button" class="categoria" data-categoria="medicos" aria-pressed="false"><span class="icono icono--cuadro icono--med"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></span>Médicos</button>
+        <button type="button" class="categoria" data-categoria="belleza" aria-pressed="false"><span class="icono icono--cuadro icono--bel"><svg class="ic" aria-hidden="true"><use href="#i-tijeras"></use></svg></span>Belleza</button>
+        <button type="button" class="categoria" data-categoria="deportes" aria-pressed="false"><span class="icono icono--cuadro icono--dep"><svg class="ic" aria-hidden="true"><use href="#i-pesa"></use></svg></span>Deportes</button>
+        <button type="button" class="categoria" data-categoria="odontologia" aria-pressed="false"><span class="icono icono--cuadro icono--odo"><svg class="ic" aria-hidden="true"><use href="#i-diente"></use></svg></span>Odontología</button>
+        <button type="button" class="categoria" data-categoria="veterinaria" aria-pressed="false"><span class="icono icono--cuadro icono--vet"><svg class="ic" aria-hidden="true"><use href="#i-pata"></use></svg></span>Veterinaria</button>
+      </div>
+    </div>
+    <div class="bloque">
+      <h2 class="h2 h2--indigo">Filtros</h2>
+      <div class="filtros">
+        <div class="campo"><label for="f-ciudad">Ciudad o ubicación</label><select id="f-ciudad" class="selector"><option>Todas las ciudades</option><option>Mi ciudad</option></select></div>
+        <div class="campo"><label for="f-fecha">Fecha</label><select id="f-fecha" class="selector"><option>Todas las fechas</option><option>Hoy</option><option>Esta semana</option></select></div>
+        <div class="campo"><label for="f-horario">Horario</label><select id="f-horario" class="selector"><option>Cualquier horario</option><option>Mañana</option><option>Tarde</option></select></div>
+      </div>
+    </div>
+    <a class="btn" href="#agendar">Buscar</a>
+  </main>
+  <div class="caption">3. Buscar servicio por categoría y filtros</div>
+</section>
+
+<!-- ============ 4. AGENDAR CITA ============ -->
+<section id="agendar" class="screen pantalla-top">
+  <header class="topbar">
+    <a class="logo" href="#inicio" aria-label="AgendaYa, ir al inicio"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></a>
+  </header>
+  <main class="pagina pagina--estrecha">
+    <div class="volver">
+      <a class="volver__btn" href="#buscar" aria-label="Volver a buscar servicio"><svg class="ic" aria-hidden="true"><use href="#i-izquierda"></use></svg></a>
+      <h1 class="titulo">Agendar cita</h1>
+    </div>
+    <div class="pasos" aria-label="Pasos para agendar">
+      <div class="paso paso--activo"><span class="paso__num">1</span><span class="paso__txt">Servicio</span></div>
+      <div class="pasos__linea"></div>
+      <div class="paso"><span class="paso__num">2</span><span class="paso__txt">Fecha y hora</span></div>
+      <div class="pasos__linea"></div>
+      <div class="paso"><span class="paso__num">3</span><span class="paso__txt">Confirmación</span></div>
+    </div>
+    <div class="tarjeta servicio">
+      <div class="icono icono--med" id="serv-icono"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></div>
+      <div class="cita__info"><div class="cita__nombre cita__nombre--lg" id="serv-nombre">Consulta médica</div><div class="cita__detalle" id="serv-detalle">Dr. Carlos Pérez · Clínica Salud Vida</div></div>
+      <a class="enlace" href="#buscar">Cambiar servicio</a>
+    </div>
+    <div class="bloque bloque--14">
+      <h2 class="seccion-titulo"><svg class="ic" aria-hidden="true"><use href="#i-calendario"></use></svg>Fecha y hora</h2>
+      <select id="fecha" class="selector selector--fecha" aria-label="Fecha de la cita">
+        <option>Mié, 7 oct 2026</option>
+        <option>Jue, 8 oct 2026</option>
+        <option>Vie, 9 oct 2026</option>
+      </select>
+      <div class="horas" aria-label="Horas disponibles">
+        <button type="button" class="hora" aria-pressed="false">8:00 a. m.</button>
+        <button type="button" class="hora" aria-pressed="false">9:00 a. m.</button>
+        <button type="button" class="hora" aria-pressed="true">10:30 a. m.</button>
+        <button type="button" class="hora" aria-pressed="false">11:00 a. m.</button>
+        <button type="button" class="hora" aria-pressed="false">11:30 a. m.</button>
+        <button type="button" class="hora" aria-pressed="false">12:00 p. m.</button>
+        <button type="button" class="hora" aria-pressed="false">2:00 p. m.</button>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="notas" class="etiqueta etiqueta--md">Notas (opcional)</label>
+      <textarea id="notas" class="area" rows="3" maxlength="500" placeholder="Escribe alguna observación adicional..."></textarea>
+    </div>
+    <a class="btn" href="#confirmacion">Siguiente</a>
+  </main>
+  <div class="caption">4. Agendar cita: fecha, hora y notas</div>
+</section>
+
+<!-- ============ 5. CONFIRMACIÓN ============ -->
+<section id="confirmacion" class="screen pantalla-top">
+  <header class="topbar">
+    <a class="logo" href="#inicio" aria-label="AgendaYa, ir al inicio"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></a>
+    <div class="topbar__acciones">
+      <button type="button" class="btn-icono" aria-label="Notificaciones"><svg class="ic" aria-hidden="true"><use href="#i-campana"></use></svg></button>
+      <button type="button" class="avatar" aria-label="Cuenta de Faneth Mejía"><span class="avatar__ini">FM</span><svg class="ic" aria-hidden="true"><use href="#i-abajo"></use></svg></button>
+    </div>
+  </header>
+  <main class="pagina pagina--estrecha confirmacion">
+    <div class="exito" aria-hidden="true">
+      <span class="confeti" style="left:14px;top:6px;background:#DB2777;transform:rotate(30deg)"></span>
+      <span class="confeti" style="right:10px;top:0;background:#4F46E5;transform:rotate(-30deg)"></span>
+      <span class="confeti confeti--punto" style="left:4px;top:50px;background:#0284C7"></span>
+      <span class="confeti confeti--punto" style="right:0;top:46px;background:#DB2777"></span>
+      <span class="confeti" style="left:12px;bottom:6px;background:#16A34A;transform:rotate(-40deg)"></span>
+      <span class="confeti" style="right:6px;bottom:8px;background:#4F46E5;transform:rotate(40deg)"></span>
+      <div class="exito__circulo"><svg class="ic"><use href="#i-check"></use></svg></div>
+    </div>
+    <div><h1 class="titulo">¡Cita agendada!</h1><p class="subtitulo subtitulo--md">Tu cita ha sido registrada correctamente.</p></div>
+    <div class="tarjeta resumen">
+      <div class="cita">
+        <div class="icono icono--med" id="res-icono"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></div>
+        <div class="cita__info"><div class="cita__nombre cita__nombre--lg" id="res-nombre">Consulta médica</div><div class="cita__detalle" id="res-detalle">Dr. Carlos Pérez · Clínica Salud Vida</div></div>
+      </div>
+      <div class="resumen__lineas">
+        <div class="resumen__linea"><svg class="ic" aria-hidden="true"><use href="#i-calendario"></use></svg><span id="res-fecha">Miércoles, 7 de octubre de 2026</span></div>
+        <div class="resumen__linea"><svg class="ic" aria-hidden="true"><use href="#i-reloj"></use></svg><span id="res-hora">10:30 a. m.</span></div>
+      </div>
+    </div>
+    <a class="btn" href="#miscitas">Ver mis citas</a>
+    <a class="btn btn--contorno" href="#inicio">Volver al inicio</a>
+    <div class="nota-info"><svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg>Te enviaremos un recordatorio a tu correo y a la app.</div>
+  </main>
+  <div class="caption">5. Confirmación de la cita</div>
+</section>
+
+<!-- ============ 6. MIS CITAS ============ -->
+<section id="miscitas" class="screen pantalla-shell">
+  <nav class="sidebar" aria-label="Menú principal">
+    <a class="logo logo--oscuro" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-logo"></use></svg><span class="logo__texto">Agenda<b>Ya</b></span></a>
+    <a class="nav-item" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-casa"></use></svg>Inicio</a>
+    <a class="nav-item" href="#buscar"><svg class="ic" aria-hidden="true"><use href="#i-buscar"></use></svg>Buscar servicios</a>
+    <a class="nav-item activo" href="#miscitas" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-calendario"></use></svg>Mis citas</a>
+    <a class="nav-item" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-usuario"></use></svg>Perfil</a>
+    <a class="nav-item" href="#inicio"><svg class="ic" aria-hidden="true"><use href="#i-ajustes"></use></svg>Configuración</a>
+  </nav>
+  <div class="contenido">
+    <header class="topbar topbar--derecha">
+      <div class="topbar__acciones">
+        <button type="button" class="btn-icono" aria-label="Notificaciones"><svg class="ic" aria-hidden="true"><use href="#i-campana"></use></svg></button>
+        <button type="button" class="avatar" aria-label="Cuenta de Faneth Mejía"><span class="avatar__ini">FM</span><svg class="ic" aria-hidden="true"><use href="#i-abajo"></use></svg></button>
+      </div>
+    </header>
+    <div class="panel">
+      <div><h1 class="titulo">Mis citas</h1><p class="subtitulo">Aquí puedes ver, modificar o cancelar tus citas.</p></div>
+      <div class="tabs" role="tablist" aria-label="Mis citas">
+        <button type="button" class="tab" role="tab" id="tab-proximas" data-tab="proximas" aria-selected="true" aria-controls="panel-proximas">Próximas</button>
+        <button type="button" class="tab" role="tab" id="tab-historial" data-tab="historial" aria-selected="false" aria-controls="panel-historial">Historial</button>
+      </div>
+      <div id="panel-proximas" class="lista" role="tabpanel" aria-labelledby="tab-proximas">
+        <div class="tarjeta">
+          <div class="cita cita--arriba">
+            <div class="icono icono--med"><svg class="ic" aria-hidden="true"><use href="#i-estetoscopio"></use></svg></div>
+            <div class="cita__info"><div class="cita__nombre">Consulta médica</div><div class="cita__detalle">Dr. Carlos Pérez · Clínica Salud Vida</div><div class="cita__detalle">Mié, 7 oct 2026 · 10:30 a. m.</div></div>
+            <span class="chip chip--ok">Confirmada</span>
+          </div>
+          <div class="cita-acciones"><a class="btn btn--contorno btn--sm" href="#agendar">Modificar</a><button type="button" class="btn btn--peligro btn--sm btn-cancelar">Cancelar</button></div>
+        </div>
+        <div class="tarjeta">
+          <div class="cita cita--arriba">
+            <div class="icono icono--bel"><svg class="ic" aria-hidden="true"><use href="#i-tijeras"></use></svg></div>
+            <div class="cita__info"><div class="cita__nombre">Corte de cabello</div><div class="cita__detalle">Salón Bella Estilo</div><div class="cita__detalle">Jue, 8 oct 2026 · 4:00 p. m.</div></div>
+            <span class="chip chip--pend">Pendiente</span>
+          </div>
+          <div class="cita-acciones"><a class="btn btn--contorno btn--sm" href="#agendar">Modificar</a><button type="button" class="btn btn--peligro btn--sm btn-cancelar">Cancelar</button></div>
+        </div>
+        <div class="tarjeta">
+          <div class="cita cita--arriba">
+            <div class="icono icono--odo"><svg class="ic" aria-hidden="true"><use href="#i-diente"></use></svg></div>
+            <div class="cita__info"><div class="cita__nombre">Limpieza dental</div><div class="cita__detalle">Odontología Sonrisa</div><div class="cita__detalle">Vie, 9 oct 2026 · 9:00 a. m.</div></div>
+            <span class="chip chip--pend">Pendiente</span>
+          </div>
+          <div class="cita-acciones"><a class="btn btn--contorno btn--sm" href="#agendar">Modificar</a><button type="button" class="btn btn--peligro btn--sm btn-cancelar">Cancelar</button></div>
+        </div>
+      </div>
+      <div id="panel-historial" class="lista" role="tabpanel" aria-labelledby="tab-historial" hidden>
+        <div class="tarjeta cita">
+          <div class="icono icono--vet"><svg class="ic" aria-hidden="true"><use href="#i-pata"></use></svg></div>
+          <div class="cita__info"><div class="cita__nombre">Control veterinario</div><div class="cita__detalle">Veterinaria Patitas</div><div class="cita__detalle">Lun, 14 sep 2026 · 3:00 p. m.</div></div>
+          <span class="chip chip--hecha">Atendida</span>
+        </div>
+        <div class="tarjeta cita">
+          <div class="icono icono--dep"><svg class="ic" aria-hidden="true"><use href="#i-pesa"></use></svg></div>
+          <div class="cita__info"><div class="cita__nombre">Clase de entrenamiento funcional</div><div class="cita__detalle">Centro Deportivo Activa</div><div class="cita__detalle">Sáb, 5 sep 2026 · 7:00 a. m.</div></div>
+          <span class="chip chip--hecha">Atendida</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">6. Mis citas: ver, modificar o cancelar</div>
+</section>
+
 </div>
-<div class="card" id="confirmacion"><h2>¡Listo! ✅</h2><p id="resumen"></p><p>Te redirigimos a WhatsApp en 3 segundos...</p></div>
-<footer style="text-align:center;padding:10px;color:#555"><b>Faneth Mejia Diaz</b><br><small>Proyecto productivo SENA - ADSO</small></footer>
+
 <script>
-const fechaInput=document.getElementById('fecha');
-const contHoras=document.getElementById('contenedor-horas');
-const hoy=new Date().toISOString().split('T')[0]; fechaInput.min=hoy;
-function generarHoras(){
-  contHoras.innerHTML='';
-  ["08:00","09:00","10:00","11:00","14:00","15:00","16:00","17:00"].forEach(h=>{
-    const b=document.createElement('button');
-    b.textContent=h; b.type='button'; b.className='hora-btn';
-    b.onclick=()=>{document.querySelectorAll('.hora-btn').forEach(x=>x.classList.remove('activa')); b.classList.add('activa')};
-    contHoras.appendChild(b);
+(function () {
+  var rutas = ['marca', 'login', 'inicio', 'buscar', 'agendar', 'confirmacion', 'miscitas'];
+  var servicios = {
+    medicos:     { nombre: 'Consulta médica',          detalle: 'Dr. Carlos Pérez · Clínica Salud Vida', icono: 'i-estetoscopio', clase: 'icono--med' },
+    belleza:     { nombre: 'Corte de cabello',         detalle: 'Salón Bella Estilo',                    icono: 'i-tijeras',      clase: 'icono--bel' },
+    deportes:    { nombre: 'Entrenamiento funcional',  detalle: 'Centro Deportivo Activa',               icono: 'i-pesa',         clase: 'icono--dep' },
+    odontologia: { nombre: 'Limpieza dental',          detalle: 'Odontología Sonrisa',                   icono: 'i-diente',       clase: 'icono--odo' },
+    veterinaria: { nombre: 'Control veterinario',      detalle: 'Veterinaria Patitas',                   icono: 'i-pata',         clase: 'icono--vet' }
+  };
+  var fechasLargas = {
+    'Mié, 7 oct 2026': 'Miércoles, 7 de octubre de 2026',
+    'Jue, 8 oct 2026': 'Jueves, 8 de octubre de 2026',
+    'Vie, 9 oct 2026': 'Viernes, 9 de octubre de 2026'
+  };
+  var estado = { categoria: 'medicos', hora: '10:30 a. m.' };
+
+  function $(sel, ctx) { return (ctx || document).querySelector(sel); }
+  function $$(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
+
+  function pintarServicio(prefijo) {
+    var s = servicios[estado.categoria] || servicios.medicos;
+    $('#' + prefijo + '-nombre').textContent = s.nombre;
+    $('#' + prefijo + '-detalle').textContent = s.detalle;
+    var icono = $('#' + prefijo + '-icono');
+    icono.className = 'icono ' + s.clase;
+    $('use', icono).setAttribute('href', '#' + s.icono);
+  }
+
+  function pintarResumen() {
+    pintarServicio('res');
+    var fecha = $('#fecha').value;
+    $('#res-fecha').textContent = fechasLargas[fecha] || fecha;
+    $('#res-hora').textContent = estado.hora;
+  }
+
+  function mostrar() {
+    var id = (location.hash || '#marca').slice(1);
+    if (rutas.indexOf(id) < 0) id = 'marca';
+    $$('.screen').forEach(function (s) { s.classList.toggle('activa', s.id === id); });
+    if (id === 'agendar') pintarServicio('serv');
+    if (id === 'confirmacion') pintarResumen();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', mostrar);
+
+  // 1. Inicio de sesión
+  $('#form-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    location.hash = '#inicio';
   });
-}
-fechaInput.addEventListener('change',generarHoras); generarHoras();
-function validarWPP(){
-  const wpp=document.getElementById('whatsapp').value.trim();
-  const err=document.getElementById('error-wpp');
- const ok=/^3\d{9}$/.test(wpp);
-  err.style.display=ok?'none':'block';
-  return ok;
-}
-document.getElementById('whatsapp').addEventListener('input',validarWPP);
-async function agendar(){
-  const servicio=document.getElementById('servicio').value;
-  const fecha=fechaInput.value;
-  const horaBtn=document.querySelector('.hora-btn.active');
-  const nombre=document.getElementById('nombre').value.trim();
-  const wpp=document.getElementById('whatsapp').value.trim();
-  if(!servicio||!fecha||!horaBtn||!nombre){ alert('Completa todos los campos y selecciona hora'); return; }
-  if(!validarWPP()) return;
-  const hora=horaBtn.textContent;
+  $('#ojo').addEventListener('click', function () {
+    var clave = $('#clave');
+    var mostrarClave = clave.type === 'password';
+    clave.type = mostrarClave ? 'text' : 'password';
+    this.setAttribute('aria-label', mostrarClave ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    $('#ojo-abierto').hidden = mostrarClave;
+    $('#ojo-cerrado').hidden = !mostrarClave;
+    clave.focus();
+  });
 
-  const res=await fetch('/api/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fecha,hora,nombre,wpp,servicio})});
-  const data=await res.json();
-  if(!res.ok){ alert(data.error); return; }
+  // 2. Buscador de la barra superior: Enter lleva a Buscar servicio
+  $('#busqueda-top').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      $('#busqueda').value = this.value;
+      location.hash = '#buscar';
+    }
+  });
 
-  document.getElementById('formulario').style.display='none';
-  document.getElementById('confirmacion').style.display='block';
-  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-  const msg=`Hola AgendYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}`;
-  const url=`https://wa.me/573001234567?text=${encodeURIComponent(msg)}`;
-  setTimeout(()=>window.open(url,'_blank'),3500);
-}
+  // 3. Categorías
+  $$('.categoria').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      estado.categoria = btn.getAttribute('data-categoria');
+      $$('.categoria').forEach(function (otro) { otro.setAttribute('aria-pressed', String(otro === btn)); });
+    });
+  });
+
+  // 4. Horas
+  $$('.hora').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      estado.hora = btn.textContent.trim();
+      $$('.hora').forEach(function (otro) { otro.setAttribute('aria-pressed', String(otro === btn)); });
+    });
+  });
+
+  // 6. Pestañas de Mis citas
+  $$('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      $$('.tab').forEach(function (otro) { otro.setAttribute('aria-selected', String(otro === tab)); });
+      var cual = tab.getAttribute('data-tab');
+      $('#panel-proximas').hidden = cual !== 'proximas';
+      $('#panel-historial').hidden = cual !== 'historial';
+    });
+  });
+
+  // 6. Cancelar una cita (pide confirmación, como en HU11)
+  $$('.btn-cancelar').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var tarjeta = btn.closest('.tarjeta');
+      if ($('.cita-confirmar', tarjeta)) return;
+      var acciones = $('.cita-acciones', tarjeta);
+      var caja = document.createElement('div');
+      caja.className = 'cita-confirmar';
+      caja.innerHTML = '<span>¿Seguro que quieres cancelar esta cita?</span>' +
+        '<div class="cita-confirmar__btns">' +
+        '<button type="button" class="btn btn--peligro btn--sm">Sí, cancelar</button>' +
+        '<button type="button" class="btn btn--contorno btn--sm">No</button>' +
+        '</div>';
+      acciones.hidden = true;
+      tarjeta.appendChild(caja);
+      var botones = caja.querySelectorAll('button');
+      botones[0].addEventListener('click', function () {
+        tarjeta.classList.add('cita--cancelada');
+        var chip = $('.chip', tarjeta);
+        chip.className = 'chip chip--cancel';
+        chip.textContent = 'Cancelada';
+        caja.remove();
+      });
+      botones[1].addEventListener('click', function () {
+        caja.remove();
+        acciones.hidden = false;
+        btn.focus();
+      });
+      botones[1].focus();
+    });
+  });
+
+  mostrar();
+})();
 </script>
 </body>
 </html>
