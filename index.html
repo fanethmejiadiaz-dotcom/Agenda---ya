@@ -42,18 +42,24 @@ function validarWPP(){
   return ok;
 }
 document.getElementById('whatsapp').addEventListener('input',validarWPP);
-function agendar(){
+async function agendar(){
   const servicio=document.getElementById('servicio').value;
   const fecha=fechaInput.value;
-  const horaBtn=document.querySelector('.hora-btn.activa');
+  const horaBtn=document.querySelector('.hora-btn.active');
   const nombre=document.getElementById('nombre').value.trim();
-  if(!servicio||!fecha||!horaBtn||!nombre){ alert('Completa todos los campos y selecciona una hora'); return; }
+  const wpp=document.getElementById('whatsapp').value.trim();
+  if(!servicio||!fecha||!horaBtn||!nombre){ alert('Completa todos los campos y selecciona hora'); return; }
   if(!validarWPP()) return;
   const hora=horaBtn.textContent;
+
+  const res=await fetch('/api/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fecha,hora,nombre,wpp,servicio})});
+  const data=await res.json();
+  if(!res.ok){ alert(data.error); return; }
+
   document.getElementById('formulario').style.display='none';
   document.getElementById('confirmacion').style.display='block';
-  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>Cliente:</b> ${nombre}`;
-  const msg=`Hola AgendaYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}. - Cartagena`;
+  document.getElementById('resumen').innerHTML=`<b>Servicio:</b> ${servicio}<br><b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
+  const msg=`Hola AgendYa! Quiero agendar: ${servicio} el ${fecha} a las ${hora}. Soy ${nombre}`;
   const url=`https://wa.me/573001234567?text=${encodeURIComponent(msg)}`;
   setTimeout(()=>window.open(url,'_blank'),3500);
 }
